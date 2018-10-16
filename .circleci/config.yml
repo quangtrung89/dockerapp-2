@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    working_directory: /dockerapp-2/demo-server
+    docker:
+      - image: circleci/openjdk:8-jdk
+      - image: circleci/postgres:9.4
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx2560m
+    steps:
+      - checkout
+      - setup_remote_docker
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: mvn dependency:go-offline
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}  
+      # run tests!
+      - run: mvn integration-test
+
+      - deploy:
+          name: Push application Docker image
+          command: |
+            docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
+            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
+            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:latest            
+            docker push $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
+            docker push $DOCKER_HUB_USER_ID/demo-server:latest
