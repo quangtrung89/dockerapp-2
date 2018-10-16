@@ -1,7 +1,7 @@
 version: '2'
 services:
     demo-postgresql:
-        image: postgres:10.4
+        image: quangtrung89/postgres
         # volumes:
         #     - ~/volumes/jhipster/demo/postgresql/:/var/lib/postgresql/data/
         environment:

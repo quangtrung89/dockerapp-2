@@ -1,7 +1,7 @@
 version: '2'
 services:
     demo-app:
-        image: demo-server
+        image: quangtrung89/demo-server
         environment:
             # - _JAVA_OPTIONS=-Xmx512m -Xms256m
             - SPRING_PROFILES_ACTIVE=prod,swagger
