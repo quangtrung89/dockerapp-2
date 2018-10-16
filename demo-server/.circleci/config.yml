@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /dockerapp-2/demo-server
+    working_directory: /demo-server
     docker:
       - image: circleci/openjdk:8-jdk
       - image: circleci/postgres:10.4
