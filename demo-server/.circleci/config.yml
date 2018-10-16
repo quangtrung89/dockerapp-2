@@ -4,7 +4,7 @@ jobs:
     working_directory: /dockerapp-2/demo-server
     docker:
       - image: circleci/openjdk:8-jdk
-      - image: circleci/postgres:9.4
+      - image: circleci/postgres:10.4
     environment:
       # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx2560m
@@ -30,7 +30,11 @@ jobs:
           name: Push application Docker image
           command: |
             docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
-            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
-            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:latest            
+            docker tag  demo-server $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
+            docker tag  demo-server $DOCKER_HUB_USER_ID/demo-server:latest            
             docker push $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
             docker push $DOCKER_HUB_USER_ID/demo-server:latest
+            docker tag  postgres $DOCKER_HUB_USER_ID/postgres:10.4
+            docker tag  postgres $DOCKER_HUB_USER_ID/postgres:latest           
+            docker push $DOCKER_HUB_USER_ID/postgres:10.4
+            docker push $DOCKER_HUB_USER_ID/postgres:lates
