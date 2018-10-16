@@ -1,27 +1,36 @@
 version: 2
 jobs:
   build:
-    working_directory: /dockerapp
+    working_directory: /dockerapp-2/demo-server
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: circleci/openjdk:8-jdk
+      - image: circleci/postgres:9.4
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx2560m
     steps:
       - checkout
       - setup_remote_docker
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --no-cache py-pip=9.0.0-r1
-            pip install docker-compose==1.15.0
-      - run:
-          name: Run tests
-          command: |
-            docker-compose up -d
-            docker-compose run dockerapp python test.py
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: mvn dependency:go-offline
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}  
+      # run tests!
+      - run: mvn integration-test
+
       - deploy:
           name: Push application Docker image
           command: |
             docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
-            docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
-            docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:latest            
-            docker push $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
-            docker push $DOCKER_HUB_USER_ID/dockerapp:latest
+            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
+            docker tag demo-server_demo-server $DOCKER_HUB_USER_ID/demo-server:latest            
+            docker push $DOCKER_HUB_USER_ID/demo-server:$CIRCLE_SHA1
+            docker push $DOCKER_HUB_USER_ID/demo-server:latest
